@@ -22,20 +22,16 @@ regd_users.post("/login", (req, res) => {
   }
 
   if (authenticatedUser(username, password)) {
-    // Generate a JWT access token valid for 1 hour
     let accessToken = jwt.sign({ username: username }, 'access_secret_key', { expiresIn: '1h' });
     
-    // Store authentication details in session
-    req.session.authorization = {
-      accessToken, username
-    };
+    req.session.authorization = { accessToken, username };
 
     return res.status(200).json({
-      message: "Customer successfully logged in",
+      message: "User successfully logged in",
       token: accessToken
     });
   } else {
-    return res.status(401).json({ message: "Invalid Login. Check username and password" });
+    return res.status(401).json({ message: "Invalid Login." });
   }
 });
 
@@ -43,8 +39,6 @@ regd_users.post("/login", (req, res) => {
 regd_users.put("/auth/review/:isbn", (req, res) => {
   const isbn = req.params.isbn;
   const review = req.body.review;
-  
-  // Extract username from session or request user context
   const username = req.session?.authorization?.username || req.user?.username;
 
   if (!username) {
@@ -56,7 +50,6 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   }
 
   if (books[isbn]) {
-    // Add or overwrite review for the specific user
     books[isbn].reviews[username] = review;
     return res.status(200).json({
       message: "Review successfully added/updated.",
@@ -80,10 +73,10 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
     if (books[isbn].reviews[username]) {
       delete books[isbn].reviews[username];
       return res.status(200).json({
-        message: `Review for ISBN ${isbn} posted by user ${username} deleted successfully.`
+        message: "Review successfully deleted"
       });
     } else {
-      return res.status(404).json({ message: "No review found from this user to delete." });
+      return res.status(404).json({ message: "Review not found." });
     }
   } else {
     return res.status(404).json({ message: "Book not found." });
